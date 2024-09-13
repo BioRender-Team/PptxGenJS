@@ -1,4 +1,4 @@
-/* PptxGenJS 3.13.0-beta.0 @ 2023-05-17T03:15:58.384Z */
+/* PptxGenJS 3.13.0-beta.1-biorender.1 @ 2024-09-13T21:04:21.226Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -635,6 +635,7 @@ var SLIDE_OBJECT_TYPES;
     SLIDE_OBJECT_TYPES["tablecell"] = "tablecell";
     SLIDE_OBJECT_TYPES["text"] = "text";
     SLIDE_OBJECT_TYPES["notes"] = "notes";
+    SLIDE_OBJECT_TYPES["tags"] = "tags";
 })(SLIDE_OBJECT_TYPES || (SLIDE_OBJECT_TYPES = {}));
 var PLACEHOLDER_TYPES;
 (function (PLACEHOLDER_TYPES) {
@@ -865,7 +866,7 @@ function genXmlColorSelection(props) {
  * @returns {number} count of all current rels plus 1 for the caller to use as its "rId"
  */
 function getNewRelId(target) {
-    return target._rels.length + target._relsChart.length + target._relsMedia.length + 1;
+    return target._rels.length + target._relsChart.length + target._relsMedia.length + target._relsTags.length + 1;
 }
 /**
  * Checks shadow options passed by user and performs corrections if needed.
@@ -1993,6 +1994,7 @@ function addImageDefinition(target, opt) {
         image: null,
         imageRid: null,
         hyperlink: null,
+        tags: null
     };
     // FIRST: Set vars for this image (object param replaces positional args in 1.1.0)
     var intPosX = opt.x || 0;
@@ -2001,6 +2003,7 @@ function addImageDefinition(target, opt) {
     var intHeight = opt.h || 0;
     var sizing = opt.sizing || null;
     var objHyperlink = opt.hyperlink || '';
+    var objTags = opt.tags || '';
     var strImageData = opt.data || '';
     var strImagePath = opt.path || '';
     var imageRelId = getNewRelId(target);
@@ -2114,6 +2117,27 @@ function addImageDefinition(target, opt) {
             });
             objHyperlink._rId = imageRelId;
             newObject.hyperlink = objHyperlink;
+        }
+    }
+    if (typeof objTags === 'object') {
+        if (!Object.keys(objTags).length) {
+            throw new Error('ERROR: `tags` option requires a `tags` object');
+        }
+        if (Object.entries(objTags).some(function (_a) {
+            var key = _a[0], val = _a[1];
+            return typeof key !== 'string' || typeof val !== 'string';
+        })) {
+            throw new Error('ERROR: `tags` object requires keys and values of type string');
+        }
+        else {
+            imageRelId++;
+            target._relsTags.push({
+                type: SLIDE_OBJECT_TYPES.tags,
+                data: objTags,
+                rId: imageRelId,
+                Target: "../tags/tag".concat(target._slideNum, "-").concat(target._relsTags.length + 1, ".xml"),
+            });
+            newObject.tags = { _rId: imageRelId, tags: objTags };
         }
     }
     // STEP 6: Add object to slide
@@ -2805,6 +2829,7 @@ var Slide = /** @class */ (function () {
         this._rels = [];
         this._relsChart = [];
         this._relsMedia = [];
+        this._relsTags = [];
         this._setSlideNum = params.setSlideNum;
         this._slideId = params.slideId;
         this._slideLayout = params.slideLayout || null;
@@ -5528,7 +5553,11 @@ function slideObjectToXml(slide) {
                 }
                 strSlideXml += '    </p:cNvPr>';
                 strSlideXml += '    <p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr>';
-                strSlideXml += '    <p:nvPr>' + genXmlPlaceholder(placeholderObj) + '</p:nvPr>';
+                strSlideXml += '    <p:nvPr>' + genXmlPlaceholder(placeholderObj);
+                if (slideItemObj.tags) {
+                    strSlideXml += "<p:custDataLst><p:tags r:id=\"rId".concat(slideItemObj.tags._rId, "\"/></p:custDataLst>");
+                }
+                strSlideXml += '</p:nvPr>';
                 strSlideXml += '  </p:nvPicPr>';
                 strSlideXml += '<p:blipFill>';
                 // NOTE: This works for both cases: either `path` or `data` contains the SVG
@@ -5738,6 +5767,10 @@ function slideObjectRelationsToXml(slide, defaultRels) {
         else if (rel.type.toLowerCase().includes('notesSlide')) {
             strXml += "<Relationship Id=\"rId".concat(rel.rId, "\" Target=\"").concat(rel.Target, "\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide\"/>");
         }
+    });
+    (slide._relsTags || []).forEach(function (rel) {
+        lastRid = Math.max(lastRid, rel.rId);
+        strXml += "<Relationship Id=\"rId".concat(rel.rId, "\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/tags\" Target=\"").concat(rel.Target, "\"/>");
     });
     (slide._relsChart || []).forEach(function (rel) {
         lastRid = Math.max(lastRid, rel.rId);
@@ -6362,6 +6395,13 @@ function makeXmlContTypes(slides, slideLayouts, masterSlide) {
             strXml += ' <Default Extension="' + rel.extn + '" ContentType="' + rel.type + '"/>';
         }
     });
+    // STEP 7: Add tags
+    slides.forEach(function (_a) {
+        var _relsTags = _a._relsTags;
+        _relsTags.forEach(function (rel) {
+            strXml += "<Override PartName=\"".concat(rel.Target.replace('..', '/ppt'), "\" ContentType=\"application/vnd.openxmlformats-officedocument.presentationml.tags+xml\"/>");
+        });
+    });
     // LAST: Finish XML (Resume core)
     strXml += ' <Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>';
     strXml += ' <Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>';
@@ -6431,6 +6471,16 @@ function makeXmlSlide(slide) {
         "".concat((slide === null || slide === void 0 ? void 0 : slide.hidden) ? ' show="0"' : '', ">") +
         "".concat(slideObjectToXml(slide)) +
         '<p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>');
+}
+function makeXmlTag(tags) {
+    return ("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>".concat(CRLF) +
+        '<p:tagLst xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" ' +
+        'xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">' +
+        Object.entries(tags).map(function (_a) {
+            var key = _a[0], value = _a[1];
+            return "<p:tag name=\"".concat(encodeXmlEntities(key.toUpperCase()), "\" val=\"").concat(encodeXmlEntities(value), "\"/>");
+        }).join('') +
+        '</p:tagLst>');
 }
 /**
  * Get text content of Notes from Slide
@@ -6713,7 +6763,7 @@ function makeXmlViewProps() {
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  *  SOFTWARE.
  */
-var VERSION = '3.13.0-beta.0-20230416-2140';
+var VERSION = '3.13.0-beta.1-biorender.1-20240913-1655';
 var PptxGenJS = /** @class */ (function () {
     function PptxGenJS() {
         var _this = this;
@@ -6868,6 +6918,7 @@ var PptxGenJS = /** @class */ (function () {
                                             zip.folder('ppt/slideLayouts').folder('_rels');
                                             zip.folder('ppt/slideMasters').folder('_rels');
                                             zip.folder('ppt/slides').folder('_rels');
+                                            zip.folder('ppt/tags');
                                             zip.folder('ppt/theme');
                                             zip.folder('ppt/notesMasters').folder('_rels');
                                             zip.folder('ppt/notesSlides').folder('_rels');
@@ -6903,6 +6954,7 @@ var PptxGenJS = /** @class */ (function () {
                                             });
                                             this.slides.forEach(function (slide) {
                                                 _this.createChartMediaRels(slide, zip, arrChartPromises);
+                                                slide._relsTags.forEach(function (rel) { return zip.file(rel.Target.replace('..', 'ppt'), makeXmlTag(rel.data)); });
                                             });
                                             this.createChartMediaRels(this.masterSlide, zip, arrChartPromises);
                                             return [4 /*yield*/, Promise.all(arrChartPromises).then(function () { return __awaiter(_this, void 0, void 0, function () {
@@ -6974,6 +7026,7 @@ var PptxGenJS = /** @class */ (function () {
                 _rels: [],
                 _relsChart: [],
                 _relsMedia: [],
+                _relsTags: [],
                 _slide: null,
                 _slideNum: 1000,
                 _slideNumberProps: null,
@@ -6997,6 +7050,7 @@ var PptxGenJS = /** @class */ (function () {
             _rels: [],
             _relsChart: [],
             _relsMedia: [],
+            _relsTags: [],
             _slideId: null,
             _slideLayout: null,
             _slideNum: null,
@@ -7325,6 +7379,7 @@ var PptxGenJS = /** @class */ (function () {
             _rels: [],
             _relsChart: [],
             _relsMedia: [],
+            _relsTags: [],
             _slideNum: this.slides.length + 1,
         };
         if (masterSlideName) {
@@ -7411,6 +7466,7 @@ var PptxGenJS = /** @class */ (function () {
             _rels: [],
             _relsChart: [],
             _relsMedia: [],
+            _relsTags: [],
             _slide: null,
             _slideNum: 1000 + this.slideLayouts.length + 1,
             _slideNumberProps: props.slideNumber || null,
