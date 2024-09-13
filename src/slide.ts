@@ -15,6 +15,7 @@ import {
 	ISlideRel,
 	ISlideRelChart,
 	ISlideRelMedia,
+	ISlideRelTags,
 	ImageProps,
 	MediaProps,
 	PresLayout,
@@ -39,6 +40,7 @@ export default class Slide {
 	public _rels: ISlideRel[]
 	public _relsChart: ISlideRelChart[]
 	public _relsMedia: ISlideRelMedia[]
+	public _relsTags: ISlideRelTags[]
 	public _rId: number
 	public _slideId: number
 	public _slideLayout: SlideLayout
@@ -65,6 +67,7 @@ export default class Slide {
 		this._rels = []
 		this._relsChart = []
 		this._relsMedia = []
+		this._relsTags = []
 		this._setSlideNum = params.setSlideNum
 		this._slideId = params.slideId
 		this._slideLayout = params.slideLayout || null
@@ -153,7 +156,7 @@ export default class Slide {
 		return this._slideNumberProps
 	}
 
-	public get newAutoPagedSlides(): PresSlide[] {
+	public get newAutoPagedSlides (): PresSlide[] {
 		return this._newAutoPagedSlides
 	}
 

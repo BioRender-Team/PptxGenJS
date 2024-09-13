@@ -1,4 +1,4 @@
-// Type definitions for pptxgenjs 3.12.0
+// Type definitions for pptxgenjs 3.13.0-beta.1-biorender.1
 // Project: https://gitbrent.github.io/PptxGenJS/
 // Definitions by: Brent Ely <https://github.com/gitbrent/>
 //                 Michael Beaumont <https://github.com/michaelbeaumont>
@@ -819,6 +819,7 @@ declare namespace PptxGenJS {
 		'tablecell' = 'tablecell',
 		'text' = 'text',
 		'notes' = 'notes',
+		'tags' = 'tags',
 	}
 	export enum TEXT_HALIGN {
 		'left' = 'left',
@@ -956,6 +957,12 @@ declare namespace PptxGenJS {
 		 * Hyperlink Tooltip
 		 */
 		tooltip?: string
+	}
+	// used by: image, ...
+	export interface TagsProps {
+		// internal
+		// _rId: number
+		tags: { [tagKey: string]: string }
 	}
 	// used by: chart, text, image
 	export interface ShadowProps {
@@ -1322,6 +1329,7 @@ declare namespace PptxGenJS {
 		 */
 		flipV?: boolean
 		hyperlink?: HyperlinkProps
+		tags?: TagsProps['tags']
 		/**
 		 * Placeholder type
 		 * - values: 'body' | 'header' | 'footer' | 'title' | et. al.

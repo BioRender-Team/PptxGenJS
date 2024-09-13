@@ -98,7 +98,7 @@ import * as genMedia from './gen-media'
 import * as genTable from './gen-tables'
 import * as genXml from './gen-xml'
 
-const VERSION = '3.13.0-beta.0-20230416-2140'
+const VERSION = '3.13.0-beta.1-biorender.1-20240913-1655'
 
 export default class PptxGenJS implements IPresentationProps {
 	// Property getters/setters
@@ -348,6 +348,7 @@ export default class PptxGenJS implements IPresentationProps {
 				_rels: [],
 				_relsChart: [],
 				_relsMedia: [],
+				_relsTags: [],
 				_slide: null,
 				_slideNum: 1000,
 				_slideNumberProps: null,
@@ -371,6 +372,7 @@ export default class PptxGenJS implements IPresentationProps {
 			_rels: [],
 			_relsChart: [],
 			_relsMedia: [],
+			_relsTags: [],
 			_slideId: null,
 			_slideLayout: null,
 			_slideNum: null,
@@ -507,6 +509,7 @@ export default class PptxGenJS implements IPresentationProps {
 			zip.folder('ppt/slideLayouts').folder('_rels')
 			zip.folder('ppt/slideMasters').folder('_rels')
 			zip.folder('ppt/slides').folder('_rels')
+			zip.folder('ppt/tags')
 			zip.folder('ppt/theme')
 			zip.folder('ppt/notesMasters').folder('_rels')
 			zip.folder('ppt/notesSlides').folder('_rels')
@@ -544,6 +547,7 @@ export default class PptxGenJS implements IPresentationProps {
 			})
 			this.slides.forEach(slide => {
 				this.createChartMediaRels(slide, zip, arrChartPromises)
+				slide._relsTags.forEach(rel => zip.file(rel.Target.replace('..', 'ppt'), genXml.makeXmlTag(rel.data)))
 			})
 			this.createChartMediaRels(this.masterSlide, zip, arrChartPromises)
 
@@ -663,6 +667,7 @@ export default class PptxGenJS implements IPresentationProps {
 			_rels: [],
 			_relsChart: [],
 			_relsMedia: [],
+			_relsTags: [],
 			_slideNum: this.slides.length + 1,
 		}
 
@@ -747,6 +752,7 @@ export default class PptxGenJS implements IPresentationProps {
 			_rels: [],
 			_relsChart: [],
 			_relsMedia: [],
+			_relsTags: [],
 			_slide: null,
 			_slideNum: 1000 + this.slideLayouts.length + 1,
 			_slideNumberProps: props.slideNumber || null,

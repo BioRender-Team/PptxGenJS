@@ -219,7 +219,7 @@ export function genXmlColorSelection (props: Color | ShapeFillProps | ShapeLineP
  * @returns {number} count of all current rels plus 1 for the caller to use as its "rId"
  */
 export function getNewRelId (target: PresSlide): number {
-	return target._rels.length + target._relsChart.length + target._relsMedia.length + 1
+	return target._rels.length + target._relsChart.length + target._relsMedia.length + target._relsTags.length + 1
 }
 
 /**
