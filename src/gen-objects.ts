@@ -516,10 +516,9 @@ export function addImageDefinition (target: PresSlide, opt: ImageProps): void {
 		}
 	}
 
+	// STEP 6: Tags support
 	if (typeof objTags === 'object') {
-		if (!Object.keys(objTags).length) {
-			throw new Error('ERROR: `tags` option requires a `tags` object')
-		}
+		// TODO: automatically stringify some non-string types like numbers or bools
 		if (Object.entries(objTags).some(([key, val]) => typeof key !== 'string' || typeof val !== 'string')) {
 			throw new Error('ERROR: `tags` object requires keys and values of type string')
 		} else {

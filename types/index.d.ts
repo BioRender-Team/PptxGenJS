@@ -958,7 +958,7 @@ declare namespace PptxGenJS {
 		 */
 		tooltip?: string
 	}
-	// used by: image, ...
+	// used by: image
 	export interface TagsProps {
 		// internal
 		// _rId: number

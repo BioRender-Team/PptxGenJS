@@ -128,7 +128,7 @@ export interface HyperlinkProps {
 	 */
 	tooltip?: string
 }
-// used by: image, ...
+// used by: image
 export interface TagsProps {
 	_rId: number
 	tags: { [tagKey: string]: string }

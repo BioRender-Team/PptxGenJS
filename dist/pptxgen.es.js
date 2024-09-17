@@ -1,4 +1,4 @@
-/* PptxGenJS 3.13.0-beta.1-biorender.1 @ 2024-09-13T21:04:21.228Z */
+/* PptxGenJS 3.13.0-beta.1-biorender.1 @ 2024-09-17T16:08:26.672Z */
 import JSZip from 'jszip';
 
 /******************************************************************************
@@ -2113,10 +2113,9 @@ function addImageDefinition(target, opt) {
             newObject.hyperlink = objHyperlink;
         }
     }
+    // STEP 6: Tags support
     if (typeof objTags === 'object') {
-        if (!Object.keys(objTags).length) {
-            throw new Error('ERROR: `tags` option requires a `tags` object');
-        }
+        // TODO: automatically stringify some non-string types like numbers or bools
         if (Object.entries(objTags).some(function (_a) {
             var key = _a[0], val = _a[1];
             return typeof key !== 'string' || typeof val !== 'string';
