@@ -128,6 +128,11 @@ export interface HyperlinkProps {
 	 */
 	tooltip?: string
 }
+// used by: image
+export interface TagsProps {
+	_rId: number
+	tags: { [tagKey: string]: string }
+}
 // used by: chart, text, image
 export interface ShadowProps {
 	/**
@@ -493,6 +498,7 @@ export interface ImageProps extends PositionProps, DataOrPathProps, ObjectNamePr
 	 */
 	flipV?: boolean
 	hyperlink?: HyperlinkProps
+	tags?: TagsProps['tags']
 	/**
 	 * Placeholder type
 	 * - values: 'body' | 'header' | 'footer' | 'title' | et. al.
@@ -1661,6 +1667,12 @@ export interface ISlideRelMedia {
 	rId: number
 	Target: string
 }
+export interface ISlideRelTags {
+	type: SLIDE_OBJECT_TYPES.tags
+	Target: string
+	data: TagsProps['tags']
+	rId: number
+}
 export interface ISlideObject {
 	_type: SLIDE_OBJECT_TYPES
 	options?: ObjectOptions
@@ -1674,6 +1686,7 @@ export interface ISlideObject {
 	image?: string
 	imageRid?: number
 	hyperlink?: HyperlinkProps
+	tags?: TagsProps
 	// media
 	media?: string
 	mtype?: MediaType
@@ -1784,6 +1797,7 @@ export interface SlideBaseProps {
 	_rels: ISlideRel[]
 	_relsChart: ISlideRelChart[] // needed as we use args:"PresSlide|SlideLayout" often
 	_relsMedia: ISlideRelMedia[] // needed as we use args:"PresSlide|SlideLayout" often
+	_relsTags: ISlideRelTags[]
 	_slideNum: number
 	_slideNumberProps?: SlideNumberProps
 	_slideObjects?: ISlideObject[]

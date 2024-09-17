@@ -384,6 +384,7 @@ export function addImageDefinition (target: PresSlide, opt: ImageProps): void {
 		image: null,
 		imageRid: null,
 		hyperlink: null,
+		tags: null
 	}
 	// FIRST: Set vars for this image (object param replaces positional args in 1.1.0)
 	const intPosX = opt.x || 0
@@ -392,6 +393,7 @@ export function addImageDefinition (target: PresSlide, opt: ImageProps): void {
 	const intHeight = opt.h || 0
 	const sizing = opt.sizing || null
 	const objHyperlink = opt.hyperlink || ''
+	const objTags = opt.tags || ''
 	const strImageData = opt.data || ''
 	const strImagePath = opt.path || ''
 	let imageRelId = getNewRelId(target)
@@ -511,6 +513,25 @@ export function addImageDefinition (target: PresSlide, opt: ImageProps): void {
 
 			objHyperlink._rId = imageRelId
 			newObject.hyperlink = objHyperlink
+		}
+	}
+
+	// STEP 6: Tags support
+	if (typeof objTags === 'object') {
+		// TODO: automatically stringify some non-string types like numbers or bools
+		if (Object.entries(objTags).some(([key, val]) => typeof key !== 'string' || typeof val !== 'string')) {
+			throw new Error('ERROR: `tags` object requires keys and values of type string')
+		} else {
+			imageRelId++
+
+			target._relsTags.push({
+				type: SLIDE_OBJECT_TYPES.tags,
+				data: objTags,
+				rId: imageRelId,
+				Target: `../tags/tag${target._slideNum}-${target._relsTags.length + 1}.xml`,
+			})
+
+			newObject.tags = { _rId: imageRelId, tags: objTags }
 		}
 	}
 

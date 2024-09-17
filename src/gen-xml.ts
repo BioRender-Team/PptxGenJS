@@ -22,6 +22,7 @@ import {
 	ISlideRel,
 	ISlideRelChart,
 	ISlideRelMedia,
+	ISlideRelTags,
 	ObjectOptions,
 	PresSlide,
 	ShadowProps,
@@ -569,7 +570,11 @@ function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 				}
 				strSlideXml += '    </p:cNvPr>'
 				strSlideXml += '    <p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr>'
-				strSlideXml += '    <p:nvPr>' + genXmlPlaceholder(placeholderObj) + '</p:nvPr>'
+				strSlideXml += '    <p:nvPr>' + genXmlPlaceholder(placeholderObj)
+				if (slideItemObj.tags) {
+					strSlideXml += `<p:custDataLst><p:tags r:id="rId${slideItemObj.tags._rId}"/></p:custDataLst>`
+				}
+				strSlideXml += '</p:nvPr>'
 				strSlideXml += '  </p:nvPicPr>'
 				strSlideXml += '<p:blipFill>'
 				// NOTE: This works for both cases: either `path` or `data` contains the SVG
@@ -780,6 +785,10 @@ function slideObjectRelationsToXml (slide: PresSlide | SlideLayout, defaultRels:
 		} else if (rel.type.toLowerCase().includes('notesSlide')) {
 			strXml += `<Relationship Id="rId${rel.rId}" Target="${rel.Target}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide"/>`
 		}
+	})
+	; (slide._relsTags || []).forEach((rel: ISlideRelTags) => {
+		lastRid = Math.max(lastRid, rel.rId)
+		strXml += `<Relationship Id="rId${rel.rId}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/tags" Target="${rel.Target}"/>`
 	})
 	; (slide._relsChart || []).forEach((rel: ISlideRelChart) => {
 		lastRid = Math.max(lastRid, rel.rId)
@@ -1427,6 +1436,13 @@ export function makeXmlContTypes (slides: PresSlide[], slideLayouts: SlideLayout
 		if (rel.type !== 'image' && rel.type !== 'online' && rel.type !== 'chart' && rel.extn !== 'm4v' && !strXml.includes(rel.type)) { strXml += ' <Default Extension="' + rel.extn + '" ContentType="' + rel.type + '"/>' }
 	})
 
+	// STEP 7: Add tags
+	slides.forEach(({ _relsTags }) => {
+		_relsTags.forEach(rel => {
+			strXml += `<Override PartName="${rel.Target.replace('..', '/ppt')}" ContentType="application/vnd.openxmlformats-officedocument.presentationml.tags+xml"/>`
+		})
+	})
+
 	// LAST: Finish XML (Resume core)
 	strXml += ' <Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>'
 	strXml += ' <Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>'
@@ -1552,6 +1568,16 @@ export function makeXmlSlide (slide: PresSlide): string {
 		`${slide?.hidden ? ' show="0"' : ''}>` +
 		`${slideObjectToXml(slide)}` +
 		'<p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>'
+	)
+}
+
+export function makeXmlTag (tags: ISlideRelTags['data']): string {
+	return (
+		`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>${CRLF}` +
+		'<p:tagLst xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" ' +
+		'xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">' +
+		Object.entries(tags).map(([key, value]) => `<p:tag name="${encodeXmlEntities(key.toUpperCase())}" val="${encodeXmlEntities(value)}"/>`).join('') +
+		'</p:tagLst>'
 	)
 }
 
