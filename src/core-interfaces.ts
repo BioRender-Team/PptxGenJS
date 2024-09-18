@@ -128,7 +128,7 @@ export interface HyperlinkProps {
 	 */
 	tooltip?: string
 }
-// used by: image
+// used by: slide, image
 export interface TagsProps {
 	_rId: number
 	tags: { [tagKey: string]: string }
@@ -1807,6 +1807,10 @@ export interface SlideBaseProps {
 	 * @deprecated v3.3.0 - use `background`
 	 */
 	bkgd?: string | BackgroundProps
+	/**
+	 * Slide tags
+	 */
+	tags?: TagsProps
 }
 export interface SlideLayout extends SlideBaseProps {
 	_slide?: {
@@ -1858,6 +1862,7 @@ export interface PresSlide extends SlideBaseProps {
 export interface AddSlideProps {
 	masterName?: string // TODO: 20200528: rename to "masterTitle" (createMaster uses `title` so lets be consistent)
 	sectionTitle?: string
+	tags?: TagsProps['tags']
 }
 export interface PresentationProps {
 	author: string

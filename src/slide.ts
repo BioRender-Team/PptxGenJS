@@ -25,6 +25,7 @@ import {
 	SlideNumberProps,
 	TableProps,
 	TableRow,
+	TagsProps,
 	TextProps,
 	TextPropsOptions,
 } from './core-interfaces'
@@ -48,6 +49,7 @@ export default class Slide {
 	public _slideNumberProps: SlideNumberProps
 	public _slideObjects: ISlideObject[]
 	public _newAutoPagedSlides: PresSlide[]
+	public _tags: TagsProps
 
 	constructor (params: {
 		addSlide: (options?: AddSlideProps) => PresSlide

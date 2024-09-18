@@ -958,7 +958,7 @@ declare namespace PptxGenJS {
 		 */
 		tooltip?: string
 	}
-	// used by: image
+	// used by: slide, image
 	export interface TagsProps {
 		// internal
 		// _rId: number
@@ -2572,6 +2572,7 @@ declare namespace PptxGenJS {
 	export interface AddSlideProps {
 		masterName?: string // TODO: 20200528: rename to "masterTitle" (createMaster uses `title` so lets be consistent)
 		sectionTitle?: string
+		tags?: TagsProps['tags']
 	}
 	export interface PresentationProps {
 		author: string

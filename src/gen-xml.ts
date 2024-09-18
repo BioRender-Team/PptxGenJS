@@ -572,7 +572,7 @@ function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 				strSlideXml += '    <p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr>'
 				strSlideXml += '    <p:nvPr>' + genXmlPlaceholder(placeholderObj)
 				if (slideItemObj.tags) {
-					strSlideXml += `<p:custDataLst><p:tags r:id="rId${slideItemObj.tags._rId}"/></p:custDataLst>`
+					strSlideXml += genXmlTags(slideItemObj.tags._rId)
 				}
 				strSlideXml += '</p:nvPr>'
 				strSlideXml += '  </p:nvPicPr>'
@@ -755,6 +755,9 @@ function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 
 	// STEP 5: Close spTree and finalize slide XML
 	strSlideXml += '</p:spTree>'
+	if (slide.tags) {
+		strSlideXml += genXmlTags(slide.tags._rId)
+	}
 	strSlideXml += '</p:cSld>'
 
 	// LAST: Return
@@ -1362,6 +1365,15 @@ export function genXmlPlaceholder (placeholderObj: ISlideObject): string {
 		${placeholderType && PLACEHOLDER_TYPES[placeholderType] ? ` type="${placeholderType}"` : ''}
 		${placeholderObj.text && placeholderObj.text.length > 0 ? ' hasCustomPrompt="1"' : ''}
 		/>`
+}
+
+/**
+ * Generate XML line for a tags object
+ * @param {number} rId
+ * @returns XML
+ */
+function genXmlTags (rId: number): string {
+	return `<p:custDataLst><p:tags r:id="rId${rId}"/></p:custDataLst>`
 }
 
 // XML-GEN: First 6 functions create the base /ppt files
