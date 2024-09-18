@@ -1810,7 +1810,7 @@ export interface SlideBaseProps {
 	/**
 	 * Slide tags
 	 */
-	tags?: TagsProps
+	_tags?: TagsProps
 }
 export interface SlideLayout extends SlideBaseProps {
 	_slide?: {

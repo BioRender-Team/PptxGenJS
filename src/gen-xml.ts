@@ -755,8 +755,8 @@ function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 
 	// STEP 5: Close spTree and finalize slide XML
 	strSlideXml += '</p:spTree>'
-	if (slide.tags) {
-		strSlideXml += genXmlTags(slide.tags._rId)
+	if (slide._tags) {
+		strSlideXml += genXmlTags(slide._tags._rId)
 	}
 	strSlideXml += '</p:cSld>'
 

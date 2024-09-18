@@ -1,4 +1,4 @@
-/* PptxGenJS 3.13.0-beta.1-biorender.1 @ 2024-09-18T19:28:33.095Z */
+/* PptxGenJS 3.13.0-beta.1-biorender.1 @ 2024-09-18T21:32:31.358Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -5744,8 +5744,8 @@ function slideObjectToXml(slide) {
     }
     // STEP 5: Close spTree and finalize slide XML
     strSlideXml += '</p:spTree>';
-    if (slide.tags) {
-        strSlideXml += genXmlTags(slide.tags._rId);
+    if (slide._tags) {
+        strSlideXml += genXmlTags(slide._tags._rId);
     }
     strSlideXml += '</p:cSld>';
     // LAST: Return
