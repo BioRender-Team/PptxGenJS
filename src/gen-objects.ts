@@ -43,6 +43,7 @@ import {
 	TableCell,
 	TableProps,
 	TableRow,
+	TagsProps,
 	TextProps,
 	TextPropsOptions,
 } from './core-interfaces'
@@ -518,25 +519,33 @@ export function addImageDefinition (target: PresSlide, opt: ImageProps): void {
 
 	// STEP 6: Tags support
 	if (typeof objTags === 'object') {
-		// TODO: automatically stringify some non-string types like numbers or bools
-		if (Object.entries(objTags).some(([key, val]) => typeof key !== 'string' || typeof val !== 'string')) {
-			throw new Error('ERROR: `tags` object requires keys and values of type string')
-		} else {
-			imageRelId++
-
-			target._relsTags.push({
-				type: SLIDE_OBJECT_TYPES.tags,
-				data: objTags,
-				rId: imageRelId,
-				Target: `../tags/tag${target._slideNum}-${target._relsTags.length + 1}.xml`,
-			})
-
-			newObject.tags = { _rId: imageRelId, tags: objTags }
+		const tags = addTagDefinition(target, objTags)
+		if (tags) {
+			newObject.tags = tags
 		}
 	}
 
 	// STEP 6: Add object to slide
 	target._slideObjects.push(newObject)
+}
+
+export function addTagDefinition (target: PresSlide, tags: TagsProps['tags']): TagsProps | null {
+	// TODO: automatically stringify some non-string types like numbers or bools
+	if (Object.entries(tags).some(([key, val]) => typeof key !== 'string' || typeof val !== 'string')) {
+		throw new Error('ERROR: `tags` object requires keys and values of type string')
+	} else if (Object.keys(tags).length) {
+		const tagRelId = getNewRelId(target)
+
+		target._relsTags.push({
+			type: SLIDE_OBJECT_TYPES.tags,
+			data: tags,
+			rId: tagRelId,
+			Target: `../tags/tag${target._slideNum}-${target._relsTags.length + 1}.xml`,
+		})
+
+		return { _rId: tagRelId, tags }
+	}
+	return null
 }
 
 /**

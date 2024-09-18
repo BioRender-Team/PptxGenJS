@@ -383,7 +383,7 @@ export default class PptxGenJS implements IPresentationProps {
 
 	/**
 	 * Provides an API for `addTableDefinition` to create slides as needed for auto-paging
-	 * @param {AddSlideProps} options - slide masterName and/or sectionTitle
+	 * @param {AddSlideProps} options - slide masterName, sectionTitle, and/or tags
 	 * @return {PresSlide} new Slide
 	 */
 	private readonly addNewSlide = (options?: AddSlideProps): PresSlide => {
@@ -709,6 +709,14 @@ export default class PptxGenJS implements IPresentationProps {
 					_type: 'default',
 					_slides: [newSlide],
 				})
+			}
+		}
+
+		// C: Tags
+		if (options?.tags) {
+			const tags = genObj.addTagDefinition(newSlide, options.tags)
+			if (tags) {
+				newSlide._tags = tags
 			}
 		}
 

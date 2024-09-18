@@ -1,4 +1,4 @@
-/* PptxGenJS 3.13.0-beta.1-biorender.1 @ 2024-09-17T16:08:26.669Z */
+/* PptxGenJS 3.13.0-beta.1-biorender.1 @ 2024-09-18T21:32:31.358Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -2121,26 +2121,33 @@ function addImageDefinition(target, opt) {
     }
     // STEP 6: Tags support
     if (typeof objTags === 'object') {
-        // TODO: automatically stringify some non-string types like numbers or bools
-        if (Object.entries(objTags).some(function (_a) {
-            var key = _a[0], val = _a[1];
-            return typeof key !== 'string' || typeof val !== 'string';
-        })) {
-            throw new Error('ERROR: `tags` object requires keys and values of type string');
-        }
-        else {
-            imageRelId++;
-            target._relsTags.push({
-                type: SLIDE_OBJECT_TYPES.tags,
-                data: objTags,
-                rId: imageRelId,
-                Target: "../tags/tag".concat(target._slideNum, "-").concat(target._relsTags.length + 1, ".xml"),
-            });
-            newObject.tags = { _rId: imageRelId, tags: objTags };
+        var tags = addTagDefinition(target, objTags);
+        if (tags) {
+            newObject.tags = tags;
         }
     }
     // STEP 6: Add object to slide
     target._slideObjects.push(newObject);
+}
+function addTagDefinition(target, tags) {
+    // TODO: automatically stringify some non-string types like numbers or bools
+    if (Object.entries(tags).some(function (_a) {
+        var key = _a[0], val = _a[1];
+        return typeof key !== 'string' || typeof val !== 'string';
+    })) {
+        throw new Error('ERROR: `tags` object requires keys and values of type string');
+    }
+    else if (Object.keys(tags).length) {
+        var tagRelId = getNewRelId(target);
+        target._relsTags.push({
+            type: SLIDE_OBJECT_TYPES.tags,
+            data: tags,
+            rId: tagRelId,
+            Target: "../tags/tag".concat(target._slideNum, "-").concat(target._relsTags.length + 1, ".xml"),
+        });
+        return { _rId: tagRelId, tags: tags };
+    }
+    return null;
 }
 /**
  * Adds a media object to a slide definition.
@@ -5554,7 +5561,7 @@ function slideObjectToXml(slide) {
                 strSlideXml += '    <p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr>';
                 strSlideXml += '    <p:nvPr>' + genXmlPlaceholder(placeholderObj);
                 if (slideItemObj.tags) {
-                    strSlideXml += "<p:custDataLst><p:tags r:id=\"rId".concat(slideItemObj.tags._rId, "\"/></p:custDataLst>");
+                    strSlideXml += genXmlTags(slideItemObj.tags._rId);
                 }
                 strSlideXml += '</p:nvPr>';
                 strSlideXml += '  </p:nvPicPr>';
@@ -5737,6 +5744,9 @@ function slideObjectToXml(slide) {
     }
     // STEP 5: Close spTree and finalize slide XML
     strSlideXml += '</p:spTree>';
+    if (slide._tags) {
+        strSlideXml += genXmlTags(slide._tags._rId);
+    }
     strSlideXml += '</p:cSld>';
     // LAST: Return
     return strSlideXml;
@@ -6328,6 +6338,14 @@ function genXmlPlaceholder(placeholderObj) {
     var placeholderType = placeholderTyp && PLACEHOLDER_TYPES[placeholderTyp] ? (PLACEHOLDER_TYPES[placeholderTyp]).toString() : '';
     return "<p:ph\n\t\t".concat(placeholderIdx ? ' idx="' + placeholderIdx.toString() + '"' : '', "\n\t\t").concat(placeholderType && PLACEHOLDER_TYPES[placeholderType] ? " type=\"".concat(placeholderType, "\"") : '', "\n\t\t").concat(placeholderObj.text && placeholderObj.text.length > 0 ? ' hasCustomPrompt="1"' : '', "\n\t\t/>");
 }
+/**
+ * Generate XML line for a tags object
+ * @param {number} rId
+ * @returns XML
+ */
+function genXmlTags(rId) {
+    return "<p:custDataLst><p:tags r:id=\"rId".concat(rId, "\"/></p:custDataLst>");
+}
 // XML-GEN: First 6 functions create the base /ppt files
 /**
  * Generate XML ContentType
@@ -6791,7 +6809,7 @@ var PptxGenJS = /** @class */ (function () {
         this._shapes = SHAPE_TYPE;
         /**
          * Provides an API for `addTableDefinition` to create slides as needed for auto-paging
-         * @param {AddSlideProps} options - slide masterName and/or sectionTitle
+         * @param {AddSlideProps} options - slide masterName, sectionTitle, and/or tags
          * @return {PresSlide} new Slide
          */
         this.addNewSlide = function (options) {
@@ -7420,6 +7438,13 @@ var PptxGenJS = /** @class */ (function () {
                     _type: 'default',
                     _slides: [newSlide],
                 });
+            }
+        }
+        // C: Tags
+        if (options === null || options === void 0 ? void 0 : options.tags) {
+            var tags = addTagDefinition(newSlide, options.tags);
+            if (tags) {
+                newSlide._tags = tags;
             }
         }
         return newSlide;
