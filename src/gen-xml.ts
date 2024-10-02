@@ -847,7 +847,6 @@ function genXmlParagraphProperties (textObj: ISlideObject | TextProps, isDefault
 	let strXmlParaSpc = ''
 	let strXmlTabStops = ''
 	const tag = isDefault ? 'a:lvl1pPr' : 'a:pPr'
-	let bulletMarL = valToPts(DEF_BULLET_MARGIN)
 
 	let paragraphPropXml = `<${tag}${textObj.options.rtlMode ? ' rtl="1" ' : ''}`
 
@@ -897,12 +896,9 @@ function genXmlParagraphProperties (textObj: ISlideObject | TextProps, isDefault
 		// NOTE: OOXML uses the unicode character set for Bullets
 		// EX: Unicode Character 'BULLET' (U+2022) ==> '<a:buChar char="&#x2022;"/>'
 		if (typeof textObj.options.bullet === 'object') {
-			if (textObj?.options?.bullet?.indent) bulletMarL = valToPts(textObj.options.bullet.indent)
-
 			if (textObj.options.bullet.type) {
 				if (textObj.options.bullet.type.toString().toLowerCase() === 'number') {
-					paragraphPropXml += ` marL="${textObj.options.indentLevel && textObj.options.indentLevel > 0 ? bulletMarL + bulletMarL * textObj.options.indentLevel : bulletMarL
-					}" indent="-${bulletMarL}"`
+					paragraphPropXml += genXmlBulletMarginIndent(textObj.options)
 					strXmlBullet = `<a:buSzPct val="100000"/><a:buFont typeface="+mj-lt"/><a:buAutoNum type="${textObj.options.bullet.style || 'arabicPeriod'}" startAt="${textObj.options.bullet.numberStartAt || textObj.options.bullet.startAt || '1'
 					}"/>`
 				}
@@ -915,8 +911,7 @@ function genXmlParagraphProperties (textObj: ISlideObject | TextProps, isDefault
 					bulletCode = BULLET_TYPES.DEFAULT
 				}
 
-				paragraphPropXml += ` marL="${textObj.options.indentLevel && textObj.options.indentLevel > 0 ? bulletMarL + bulletMarL * textObj.options.indentLevel : bulletMarL
-				}" indent="-${bulletMarL}"`
+				paragraphPropXml += genXmlBulletMarginIndent(textObj.options)
 				strXmlBullet = '<a:buSzPct val="100000"/><a:buChar char="' + bulletCode + '"/>'
 			} else if (textObj.options.bullet.code) {
 				// @deprecated `bullet.code` v3.3.0
@@ -928,17 +923,14 @@ function genXmlParagraphProperties (textObj: ISlideObject | TextProps, isDefault
 					bulletCode = BULLET_TYPES.DEFAULT
 				}
 
-				paragraphPropXml += ` marL="${textObj.options.indentLevel && textObj.options.indentLevel > 0 ? bulletMarL + bulletMarL * textObj.options.indentLevel : bulletMarL
-				}" indent="-${bulletMarL}"`
+				paragraphPropXml += genXmlBulletMarginIndent(textObj.options)
 				strXmlBullet = '<a:buSzPct val="100000"/><a:buChar char="' + bulletCode + '"/>'
 			} else {
-				paragraphPropXml += ` marL="${textObj.options.indentLevel && textObj.options.indentLevel > 0 ? bulletMarL + bulletMarL * textObj.options.indentLevel : bulletMarL
-				}" indent="-${bulletMarL}"`
+				paragraphPropXml += genXmlBulletMarginIndent(textObj.options)
 				strXmlBullet = `<a:buSzPct val="100000"/><a:buChar char="${BULLET_TYPES.DEFAULT}"/>`
 			}
 		} else if (textObj.options.bullet) {
-			paragraphPropXml += ` marL="${textObj.options.indentLevel && textObj.options.indentLevel > 0 ? bulletMarL + bulletMarL * textObj.options.indentLevel : bulletMarL
-			}" indent="-${bulletMarL}"`
+			paragraphPropXml += genXmlBulletMarginIndent(textObj.options)
 			strXmlBullet = `<a:buSzPct val="100000"/><a:buChar char="${BULLET_TYPES.DEFAULT}"/>`
 		} else if (!textObj.options.bullet) {
 			// We only add this when the user explicitely asks for no bullet, otherwise, it can override the master defaults!
@@ -960,6 +952,19 @@ function genXmlParagraphProperties (textObj: ISlideObject | TextProps, isDefault
 	}
 
 	return paragraphPropXml
+}
+
+function genXmlBulletMarginIndent (options: ObjectOptions | TextPropsOptions): string {
+	const bullet = typeof options.bullet === 'object' ? options.bullet : {}
+	const bulletMarL = valToPts(bullet.indent ?? DEF_BULLET_MARGIN)
+	const indentLevel = options.indentLevel ?? 0
+
+	if (!bullet.hangingIndentRatio) {
+		return ` marL="${indentLevel > 0 ? bulletMarL + bulletMarL * options.indentLevel : bulletMarL}" indent="-${bulletMarL}"`
+	}
+
+	const hangingIndent = bulletMarL * bullet.hangingIndentRatio
+	return ` marL="${bulletMarL * (options.indentLevel || 1)}" indent="-${hangingIndent}"`
 }
 
 /**
