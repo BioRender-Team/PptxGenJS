@@ -960,11 +960,11 @@ function genXmlBulletMarginIndent (options: ObjectOptions | TextPropsOptions): s
 	const indentLevel = options.indentLevel ?? 0
 
 	if (!bullet.hangingIndentRatio) {
-		return ` marL="${indentLevel > 0 ? bulletMarL + bulletMarL * options.indentLevel : bulletMarL}" indent="-${bulletMarL}"`
+		return ` marL="${indentLevel > 0 ? bulletMarL + bulletMarL * indentLevel : bulletMarL}" indent="-${bulletMarL}"`
 	}
 
 	const hangingIndent = Math.round(bulletMarL * bullet.hangingIndentRatio)
-	return ` marL="${bulletMarL * (options.indentLevel || 1)}" indent="-${hangingIndent}"`
+	return ` marL="${bulletMarL * (indentLevel || 1)}" indent="-${hangingIndent}"`
 }
 
 /**

@@ -1,4 +1,4 @@
-/* PptxGenJS 3.13.0-beta.1-biorender.1 @ 2024-10-02T19:42:22.356Z */
+/* PptxGenJS 3.13.0-beta.1-biorender.1 @ 2024-10-02T20:09:25.613Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -5943,10 +5943,10 @@ function genXmlBulletMarginIndent(options) {
     var bulletMarL = valToPts((_a = bullet.indent) !== null && _a !== void 0 ? _a : DEF_BULLET_MARGIN);
     var indentLevel = (_b = options.indentLevel) !== null && _b !== void 0 ? _b : 0;
     if (!bullet.hangingIndentRatio) {
-        return " marL=\"".concat(indentLevel > 0 ? bulletMarL + bulletMarL * options.indentLevel : bulletMarL, "\" indent=\"-").concat(bulletMarL, "\"");
+        return " marL=\"".concat(indentLevel > 0 ? bulletMarL + bulletMarL * indentLevel : bulletMarL, "\" indent=\"-").concat(bulletMarL, "\"");
     }
     var hangingIndent = Math.round(bulletMarL * bullet.hangingIndentRatio);
-    return " marL=\"".concat(bulletMarL * (options.indentLevel || 1), "\" indent=\"-").concat(hangingIndent, "\"");
+    return " marL=\"".concat(bulletMarL * (indentLevel || 1), "\" indent=\"-").concat(hangingIndent, "\"");
 }
 /**
  * Generate XML Text Run Properties (`a:rPr`)
