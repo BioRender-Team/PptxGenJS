@@ -1,4 +1,4 @@
-/* PptxGenJS 3.13.0-beta.1-biorender.1 @ 2024-10-02T19:01:40.931Z */
+/* PptxGenJS 3.13.0-beta.1-biorender.1 @ 2024-10-02T19:42:22.356Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -5945,7 +5945,7 @@ function genXmlBulletMarginIndent(options) {
     if (!bullet.hangingIndentRatio) {
         return " marL=\"".concat(indentLevel > 0 ? bulletMarL + bulletMarL * options.indentLevel : bulletMarL, "\" indent=\"-").concat(bulletMarL, "\"");
     }
-    var hangingIndent = bulletMarL * bullet.hangingIndentRatio;
+    var hangingIndent = Math.round(bulletMarL * bullet.hangingIndentRatio);
     return " marL=\"".concat(bulletMarL * (options.indentLevel || 1), "\" indent=\"-").concat(hangingIndent, "\"");
 }
 /**
