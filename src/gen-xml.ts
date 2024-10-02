@@ -963,7 +963,7 @@ function genXmlBulletMarginIndent (options: ObjectOptions | TextPropsOptions): s
 		return ` marL="${indentLevel > 0 ? bulletMarL + bulletMarL * options.indentLevel : bulletMarL}" indent="-${bulletMarL}"`
 	}
 
-	const hangingIndent = bulletMarL * bullet.hangingIndentRatio
+	const hangingIndent = Math.round(bulletMarL * bullet.hangingIndentRatio)
 	return ` marL="${bulletMarL * (options.indentLevel || 1)}" indent="-${hangingIndent}"`
 }
 
