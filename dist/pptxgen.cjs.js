@@ -1,4 +1,4 @@
-/* PptxGenJS 3.13.0-beta.1-biorender.1 @ 2024-09-18T21:32:31.358Z */
+/* PptxGenJS 3.13.0-beta.1-biorender.1 @ 2024-10-02T20:09:25.613Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -5833,13 +5833,11 @@ function slideObjectRelationsToXml(slide, defaultRels) {
  * @return {string} XML
  */
 function genXmlParagraphProperties(textObj, isDefault) {
-    var _a, _b;
     var strXmlBullet = '';
     var strXmlLnSpc = '';
     var strXmlParaSpc = '';
     var strXmlTabStops = '';
     var tag = isDefault ? 'a:lvl1pPr' : 'a:pPr';
-    var bulletMarL = valToPts(DEF_BULLET_MARGIN);
     var paragraphPropXml = "<".concat(tag).concat(textObj.options.rtlMode ? ' rtl="1" ' : '');
     // A: Build paragraphProperties
     {
@@ -5884,11 +5882,9 @@ function genXmlParagraphProperties(textObj, isDefault) {
         // NOTE: OOXML uses the unicode character set for Bullets
         // EX: Unicode Character 'BULLET' (U+2022) ==> '<a:buChar char="&#x2022;"/>'
         if (typeof textObj.options.bullet === 'object') {
-            if ((_b = (_a = textObj === null || textObj === void 0 ? void 0 : textObj.options) === null || _a === void 0 ? void 0 : _a.bullet) === null || _b === void 0 ? void 0 : _b.indent)
-                bulletMarL = valToPts(textObj.options.bullet.indent);
             if (textObj.options.bullet.type) {
                 if (textObj.options.bullet.type.toString().toLowerCase() === 'number') {
-                    paragraphPropXml += " marL=\"".concat(textObj.options.indentLevel && textObj.options.indentLevel > 0 ? bulletMarL + bulletMarL * textObj.options.indentLevel : bulletMarL, "\" indent=\"-").concat(bulletMarL, "\"");
+                    paragraphPropXml += genXmlBulletMarginIndent(textObj.options);
                     strXmlBullet = "<a:buSzPct val=\"100000\"/><a:buFont typeface=\"+mj-lt\"/><a:buAutoNum type=\"".concat(textObj.options.bullet.style || 'arabicPeriod', "\" startAt=\"").concat(textObj.options.bullet.numberStartAt || textObj.options.bullet.startAt || '1', "\"/>");
                 }
             }
@@ -5899,7 +5895,7 @@ function genXmlParagraphProperties(textObj, isDefault) {
                     console.warn('Warning: `bullet.characterCode should be a 4-digit unicode charatcer (ex: 22AB)`!');
                     bulletCode = BULLET_TYPES.DEFAULT;
                 }
-                paragraphPropXml += " marL=\"".concat(textObj.options.indentLevel && textObj.options.indentLevel > 0 ? bulletMarL + bulletMarL * textObj.options.indentLevel : bulletMarL, "\" indent=\"-").concat(bulletMarL, "\"");
+                paragraphPropXml += genXmlBulletMarginIndent(textObj.options);
                 strXmlBullet = '<a:buSzPct val="100000"/><a:buChar char="' + bulletCode + '"/>';
             }
             else if (textObj.options.bullet.code) {
@@ -5910,16 +5906,16 @@ function genXmlParagraphProperties(textObj, isDefault) {
                     console.warn('Warning: `bullet.code should be a 4-digit hex code (ex: 22AB)`!');
                     bulletCode = BULLET_TYPES.DEFAULT;
                 }
-                paragraphPropXml += " marL=\"".concat(textObj.options.indentLevel && textObj.options.indentLevel > 0 ? bulletMarL + bulletMarL * textObj.options.indentLevel : bulletMarL, "\" indent=\"-").concat(bulletMarL, "\"");
+                paragraphPropXml += genXmlBulletMarginIndent(textObj.options);
                 strXmlBullet = '<a:buSzPct val="100000"/><a:buChar char="' + bulletCode + '"/>';
             }
             else {
-                paragraphPropXml += " marL=\"".concat(textObj.options.indentLevel && textObj.options.indentLevel > 0 ? bulletMarL + bulletMarL * textObj.options.indentLevel : bulletMarL, "\" indent=\"-").concat(bulletMarL, "\"");
+                paragraphPropXml += genXmlBulletMarginIndent(textObj.options);
                 strXmlBullet = "<a:buSzPct val=\"100000\"/><a:buChar char=\"".concat(BULLET_TYPES.DEFAULT, "\"/>");
             }
         }
         else if (textObj.options.bullet) {
-            paragraphPropXml += " marL=\"".concat(textObj.options.indentLevel && textObj.options.indentLevel > 0 ? bulletMarL + bulletMarL * textObj.options.indentLevel : bulletMarL, "\" indent=\"-").concat(bulletMarL, "\"");
+            paragraphPropXml += genXmlBulletMarginIndent(textObj.options);
             strXmlBullet = "<a:buSzPct val=\"100000\"/><a:buChar char=\"".concat(BULLET_TYPES.DEFAULT, "\"/>");
         }
         else if (!textObj.options.bullet) {
@@ -5940,6 +5936,17 @@ function genXmlParagraphProperties(textObj, isDefault) {
         paragraphPropXml += '</' + tag + '>';
     }
     return paragraphPropXml;
+}
+function genXmlBulletMarginIndent(options) {
+    var _a, _b;
+    var bullet = typeof options.bullet === 'object' ? options.bullet : {};
+    var bulletMarL = valToPts((_a = bullet.indent) !== null && _a !== void 0 ? _a : DEF_BULLET_MARGIN);
+    var indentLevel = (_b = options.indentLevel) !== null && _b !== void 0 ? _b : 0;
+    if (!bullet.hangingIndentRatio) {
+        return " marL=\"".concat(indentLevel > 0 ? bulletMarL + bulletMarL * indentLevel : bulletMarL, "\" indent=\"-").concat(bulletMarL, "\"");
+    }
+    var hangingIndent = Math.round(bulletMarL * bullet.hangingIndentRatio);
+    return " marL=\"".concat(bulletMarL * (indentLevel || 1), "\" indent=\"-").concat(hangingIndent, "\"");
 }
 /**
  * Generate XML Text Run Properties (`a:rPr`)

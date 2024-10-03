@@ -296,6 +296,18 @@ export interface TextBaseProps {
 		 */
 		indent?: number
 		/**
+		 * ratio between `before text` indent and hanging indent
+		 *
+		 * passing this option will opt into different bullet behaviour:
+		 * `indent` will be treated as the `before text` indent
+		 * and the hanging indent will be calculated from this value.
+		 *
+		 * (normally, `indent` is the hanging indent and the `before text` indent is 2, 3, 4, 5, etc. times that value)
+		 * @example 5/7 or 0.71428
+		 * // hanging indent value will be 5/7 the size of the base `before text` indent value
+		 */
+		hangingIndentRatio?: number
+		/**
 		 * Number type
 		 * @since v3.3.0
 		 * @example 'romanLcParenR' // roman numerals lower-case with paranthesis right
